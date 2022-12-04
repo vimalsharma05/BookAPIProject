@@ -78,5 +78,50 @@ namespace TestBookAPI.UnitTests.Controllers
             Assert.Equal(200, output.StatusCode);
             Assert.Equal(id, ((BookEntity)((ObjectResult)result).Value).Id);
         }
+        [Fact]
+        public async Task GetBooks_Should_NotFound_Return404()
+        {
+            //Act
+            var result = await sut.GetBooks();
+
+            //Assert
+            var output = Assert.IsType<NotFoundResult>(result);
+            Assert.Equal(404, output.StatusCode);
+        }
+        [Fact]
+        public async Task GetBooks_ById_Should_NotFound_Return404()
+        {
+            //Arrange
+            Guid id = Guid.NewGuid();
+
+            //Act
+            var result = await sut.GetBookById(id);
+
+            //Assert
+            var output = Assert.IsType<NotFoundResult>(result);
+            Assert.Equal(404, output.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetBooks_ById_Not_Connecting_Database_Should_Return_Exception()
+        {
+            //Arrange
+            Guid id = Guid.NewGuid();
+            BookEntity bookEntity = new BookEntity
+            {
+                Id = id,
+                Name = "testBook",
+                AutherName = "testAuther"
+            };
+            _mockRepository.Setup(x => x.GetBookById(id)).ThrowsAsync(new Exception("Not able to connect with Database"));
+
+            //Act
+            var result = await sut.GetBookById(id);
+
+            //Assert
+            var output = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, output.StatusCode);
+        }
+
     }
 }
